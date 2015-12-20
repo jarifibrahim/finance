@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+		<meta charset="utf-8">
+  		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
+        <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet"/>
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"/>
+
+        {% if title %}
+            <title>C$50 Finance: {{ title }} </title>
+        {% else %}
+            <title>C$50 Finance</title>
+        {% endif %}
+
+        <script src="{{url_for('static',filename='js/jquery-1.11.1.min.js')}}"></script>
+        <script src="{{url_for('static',filename='js/bootstrap.min.js')}}"></script>
+        <script src="{{url_for('static',filename='js/scripts.js')}}"></script>
+
+    </head>
+
+    <body>
+
+        <div class="container">
+
+            <div id="top">
+                <a href="/"><img alt="C$50 Finance" src="{{ url_for('static', filename='img/logo.gif') }}"/></a>
+            </div>
+            <div id="middle">
+            {% block content %}
+            {% endblock %}
+            </div>
+
+            <div id="bottom">
+              Copyright &#169; John Harvard
+            </div>
+
+          </div>
+    </body>
+
+</html>
