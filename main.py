@@ -153,7 +153,7 @@ def logout():
 def register():
     if request.method == 'GET':
         form = RegisterForm()
-        return render_template('register_form.html', form=form, title='Register')
+        return render_template('register_form.html', form=form, title='Register', no='ar')
     elif request.method == 'POST':
         form = RegisterForm(request.form)
         if form.validate():
