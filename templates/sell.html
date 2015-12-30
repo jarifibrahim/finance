@@ -1,0 +1,24 @@
+{% extends 'layout.html'%}
+{% set page = 'sell' %}
+{% block content %}
+  <table class="table table-bordered table-striped">
+    <tr>
+      <td>Stock</td>
+      <td>Shares</td>
+      <td>Cost</td>
+      <td>Value</td>
+    </tr>
+    {% for s in stocks %}
+    <tr class="{# loop.cycle('success', 'danger') #}">
+      <td>{{s['name']}}</td>
+      <td>{{s['shares']}}</td>
+      <td>{{s['cost']}}</td>
+      <td>{{s['value']}}</td>
+    </tr>
+  {% endfor %}
+  <tr>
+    <td colspan="3">Current Balance</td>
+    <td>{{total}}</td>
+  </tr>
+</table>
+{% endblock %}

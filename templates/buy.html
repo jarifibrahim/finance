@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+{% block content %}
+<form class='form-horizontal' action="{{url_for('.buy')}}">
+  <div class="form-group">
+    <input type="text" placeholder="Symbol" class="form-control"/>
+  </div>
+  <div class="form-group">
+    <input type="text" placeholder="Shares" class="form-control"/>
+  </div>
+  <div class="form-group">
+    <input type="submit" class="form-control btn btn-default" value="BUY"/>
+  </div>
+</form>
+{% endblock %}

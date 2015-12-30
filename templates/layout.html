@@ -18,7 +18,6 @@
         <script src="{{url_for('static',filename='js/jquery-1.11.1.min.js')}}"></script>
         <script src="{{url_for('static',filename='js/bootstrap.min.js')}}"></script>
         <script src="{{url_for('static',filename='js/scripts.js')}}"></script>
-
     </head>
 
     <body>
@@ -28,13 +27,73 @@
             <div id="top">
                 <a href="/"><img alt="C$50 Finance" src="{{ url_for('static', filename='img/logo.gif') }}"/></a>
             </div>
+            {%if no is undefined%}
+            <div id='nav'>
+              <nav class="navbar">
+                <div class="container-fluid" style="width: 357px">
+                <!--  <div class="navbar-header">
+                    <a class="navbar-brand" href="{{ url_for('.index') }}">CS50 Finance</a>
+                  </div> -->
+                  <div>
+                  {#
+                  {% set navigation_bar = [
+                                  (url_for('.index'), 'index', 'Home'),
+                                  (url_for('.portfolio'), 'portfolio', 'Portfolio'),
+                                  (url_for('.quote'), 'quote', 'Get Quote'),
+                                  (url_for('.sell'), 'sell', 'Sell Stocks'),
+                                  (url_for('.buy'), 'buy', 'Buy Stocks'),
+                                  (url_for('.history'), 'history', 'Transaction History')
+                              ] -%}
+                  {% set active_page = page|default('index') -%}
+
+                  <ul id="navigation" class="nav navbar-nav">
+                      {% for href, id, caption in navigation_bar %}
+                      <li{% if id == active_page %} class="active"{% endif
+                      %}><a href="{{ href|e }}">{{ caption|e }}</a>
+                      </li>
+                  {% endfor %}
+                </ul>
+              #}
+                  </ul>
+                      <ul class="nav navbar-nav">
+                      <li><a href="{{url_for('.quote')}}" >Quote</a></li>
+                      <li><a href="{{url_for('.sell')}}">Sell</a></li>
+                      <li><a href="{{url_for('.buy')}}">Buy</a></li>
+                      <li><a href="{{url_for('.history')}}">History</a></li>
+                      <li><a href="{{url_for('.logout')}}"><strong>Logout</strong></a></li>
+                   </ul>
+                 <!--
+                   <ul class="nav navbar-nav navbar-right">
+                     {% if session.username is defined %}
+                      <li><a href="#"><span class="glyphicon glyphicon-user"></span> Hi, {{session.username}}</a></li>
+                      <li><a href="{{url_for('.logout')}}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                     {% else %}
+                      <li><a href="{{url_for('.register')}}"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+                      <li><a href="{{url_for('.login')}}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+                      {% endif %}
+                    </ul>
+                  -->
+                  </div>
+                </div>
+              </nav>
+            </div>
+            {%endif%}
             <div id="middle">
+              {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                  <ul class='list-group'>
+                  {% for message in messages %}
+                    <li class="list-group-item list-group-item-success">{{ message }}</li>
+                  {% endfor %}
+                  </ul>
+                {% endif %}
+              {% endwith %}
             {% block content %}
             {% endblock %}
             </div>
 
             <div id="bottom">
-              Copyright &#169; John Harvard
+              Copyright &#169; Ibrahim Jarif
             </div>
 
           </div>

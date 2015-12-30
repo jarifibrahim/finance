@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% set page = 'quote' %}
+{% block content %}
+
+{% if quote is defined %}
+  <h1 class='text-success'><strong>{{stock}}</strong>:{{quote}}</h1>
+{% elif stock is defined  %}
+  <h1 class="text-danger"><strong>{{stock}}</strong>:Stock not found</h1>
+{% endif %}
+<form class='form-horizontal' action="{{url_for('quote')}}" method="get">
+  <div class='form-group'><input type="text" name='stock' id='stock' class="form-control" placeholder='Stock'/></div>
+  <div class="form-group"><input type='submit' class="btn btn-default" value='Get Quote'/></div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+{% block content %}
+<form action="{{url_for('login')}}" method="post" class='form-horizontal'>
+  {{ form.csrf_token }}
+  <div class='form-group'>
+    {{ form.username(size=20,placeholder='Username',class='form-control') }}
+  </div>
+  <div class='form-group'>
+    {{ form.password(placeholder='Password', class='form-control') }}
+  </div>
+  <div class='form-group'>
+    {{ form.submit(class='btn btn-default')}}
+  </div>
+  <div>
+      or <a href="{{url_for('.register')}}">register</a> for an account
+  </div>
+</form>
+{% endblock %}

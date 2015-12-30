@@ -1,6 +1,26 @@
-<div>
-    <img alt="Under Construction" src="../img/construction.gif"/>
-</div>
-<div>
-    <a href="logout.php">Log Out</a>
-</div>
+{% extends 'layout.html'%}
+{% set page = 'portfolio' %}
+{% block content %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Stock</th>
+        <th>Shares</th>
+        <th>Cost</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    {% for s in stocks %}
+    <tr class="{# loop.cycle('success', 'danger') #}">
+      <td>{{s['name']}}</td>
+      <td>{{s['shares']}}</td>
+      <td>{{s['cost']}}</td>
+      <td>${{s['value']}}</td>
+    </tr>
+  {% endfor %}
+  <tr>
+    <td colspan="3" style="text-align: left"><strong>Current Balance</strong></td>
+    <td>${{total}}</td>
+  </tr>
+</table>
+{% endblock %}
