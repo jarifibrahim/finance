@@ -3,7 +3,7 @@
 {% block content %}
 
 {% if quote is defined %}
-  <h1 class='text-success'><strong>{{stock}}</strong>:{{quote}}</h1>
+  <h1 class='text-success'><strong>{{stock}}</strong>:${{quote}}</h1>
 {% elif stock is defined  %}
   <h1 class="text-danger"><strong>{{stock}}</strong>:Stock not found</h1>
 {% endif %}
