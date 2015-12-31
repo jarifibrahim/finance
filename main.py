@@ -16,6 +16,9 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = 's3cr3t'
 # Database to use for mongoDB
 app.config['MONGODB_DB'] = 'finance'
+app.config['MONGODB_SETTINGS'] = {
+    'host': 'mongodb://finance-user:imibrahim@ds037215.mongolab.com:37215/finance-database'
+}
 app.debug = True
 
 db = MongoEngine(app)
@@ -49,7 +52,7 @@ def createUser(form):
 
 # Verify login credentials
 def check_login(form):
-    current_user = Users.objects.get(username=form.username.data)
+    current_user = Users.objects.get_or_404(username=form.username.data)
     return current_user.check_password(form.password.data)
 
 new_stock = []
@@ -118,7 +121,7 @@ def login():
 
             # Log user session
             session['username'] = form.username.data
-            current_user = Users.objects.get(username=session['username'])
+            current_user = Users.objects.get_or_404(username=session['username'])
             stocks = current_user.stock
             cost = []                       # Cost of each stock
             value = []                      # Value of stock = Cost * number of shares
@@ -165,6 +168,10 @@ def register():
         else:
             return render_template('form_error.html', form=form)
     return render_template('apology.html', message=['Something went wrong'])
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('apology.html',message=['User not found. Please register before trying to log in.'],title='Page Not Found', no='asd'), 404
 
 if __name__ == '__main__':
     app.run()
