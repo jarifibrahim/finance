@@ -16,9 +16,9 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = 's3cr3t'
 # Database to use for mongoDB
 app.config['MONGODB_DB'] = 'finance'
-app.config['MONGODB_SETTINGS'] = {
+'''app.config['MONGODB_SETTINGS'] = {
     'host': 'mongodb://finance-user:imibrahim@ds037215.mongolab.com:37215/finance-database'
-}
+}'''
 app.debug = True
 
 db = MongoEngine(app)
@@ -55,7 +55,7 @@ def check_login(form):
     current_user = Users.objects.get_or_404(username=form.username.data)
     return current_user.check_password(form.password.data)
 
-new_stock = []
+new_stock = []                  # User data from the db
 total = 0.0                     # Total value of all shares
 
 @app.route("/")
@@ -72,6 +72,7 @@ def portfolio():
         return render_template('portfolio.html', title='Portfolio', stocks=new_stock, total=total)
     else:
         return render_template('apology.html', title='Error', message=['Log In to see this page'])
+
 @app.route("/quote", methods=['GET'])
 def quote():
     s = request.args.get('stock')
@@ -90,20 +91,31 @@ def quote():
 @app.route("/sell")
 def sell():
     if 'username' in session:
-        return render_template('construction.html', page='sell')
-    return render_template('apology.html', page='sell', message=['Log In to see this page'])
+        s = request.args.get('symbol')
+        if s is not None and s != '':
+            user = Users.objects.get_or_404(username=session['username'])
+            user_stock = user.stock
+            del user_stock[s]
+            global new_stock
+            new_stock = user_stock
+            Users.objects(username=session['username']).update_one(set__username='newuser123')
+            user.reload()
+            flash('Stock sold successfully')
+            return render_template('portfolio.html', stocks=new_stock)
+        return render_template('sell.html', stocks=new_stock)
+    return render_template('apology.html', message=['Log In to see this page'])
 
 @app.route('/buy')
 def buy():
     if 'username' in session:
         return render_template('construction.html', title='Buy')
-    return render_template('apology.html', page='buy', message=['Log In to see this page'])
+    return render_template('apology.html', message=['Log In to see this page'])
 
 @app.route('/history')
 def history():
     if 'username' in session:
-        return render_template('construction.html', page='sell')
-    return render_template('apology.html', page='history', message=['Log In to see this page'])
+        return render_template('construction.html')
+    return render_template('apology.html', message=['Log In to see this page'])
 
 @app.route("/login", methods=['POST', 'GET'])
 def login():
@@ -118,7 +130,6 @@ def login():
             # Check username and password
             check_login(form)
             flash('You were successfully logged in')
-
             # Log user session
             session['username'] = form.username.data
             current_user = Users.objects.get_or_404(username=session['username'])
@@ -128,8 +139,6 @@ def login():
             global total
             global new_stock
             new_stock = []
-            for key in new_stock:
-                print key
             for stock, shares in stocks.items():
                 temp = {}
                 yahoo = Share(stock)
@@ -139,6 +148,7 @@ def login():
                 temp['value'] = temp['cost'] * int(shares)
                 total = total + temp['value']
                 new_stock.append(temp)
+            total = total + current_user.cash
             return redirect(url_for('index'))
         else:
             return render_template('apology.html', message=form.errors, title='Error')

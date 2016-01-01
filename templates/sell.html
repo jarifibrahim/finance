@@ -1,24 +1,14 @@
 {% extends 'layout.html'%}
-{% set page = 'sell' %}
 {% block content %}
-  <table class="table table-bordered table-striped">
-    <tr>
-      <td>Stock</td>
-      <td>Shares</td>
-      <td>Cost</td>
-      <td>Value</td>
-    </tr>
+<form class="form" action="{{url_for('.sell')}}" method='GET'>
+<div class="form-grouo">
+  <select class="form-control" name='symbol'>
     {% for s in stocks %}
-    <tr class="{# loop.cycle('success', 'danger') #}">
-      <td>{{s['name']}}</td>
-      <td>{{s['shares']}}</td>
-      <td>{{s['cost']}}</td>
-      <td>{{s['value']}}</td>
-    </tr>
-  {% endfor %}
-  <tr>
-    <td colspan="3">Current Balance</td>
-    <td>{{total}}</td>
-  </tr>
-</table>
+    <option>{{s['name']}}</option>
+    {%endfor%}
+    </select>
+    <div class='form-group'>
+      <input class="btn btn-default" type='Submit' value='Sell'/>
+    </div>
+</form>
 {% endblock %}
