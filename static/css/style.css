@@ -14,7 +14,9 @@
     margin-right: auto;
     text-align: center;
 }
-
+img {
+  margin: 0px auto;
+}
 #middle .form-control
 {
     /* center form controls */

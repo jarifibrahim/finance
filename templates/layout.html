@@ -25,55 +25,32 @@
         <div class="container">
 
             <div id="top">
-                <a href="/"><img alt="C$50 Finance" src="{{ url_for('static', filename='img/logo.gif') }}"/></a>
+                <a href="/"><img class="img-responsive" alt="C$50 Finance" src="{{ url_for('static', filename='img/logo.gif') }}"/></a>
             </div>
             {%if no is undefined%}
             <div id='nav'>
-              <nav class="navbar">
-                <div class="container-fluid" style="width: 357px">
-                <!--  <div class="navbar-header">
-                    <a class="navbar-brand" href="{{ url_for('.index') }}">CS50 Finance</a>
-                  </div> -->
-                  <div>
-                  {#
-                  {% set navigation_bar = [
-                                  (url_for('.index'), 'index', 'Home'),
-                                  (url_for('.portfolio'), 'portfolio', 'Portfolio'),
-                                  (url_for('.quote'), 'quote', 'Get Quote'),
-                                  (url_for('.sell'), 'sell', 'Sell Stocks'),
-                                  (url_for('.buy'), 'buy', 'Buy Stocks'),
-                                  (url_for('.history'), 'history', 'Transaction History')
-                              ] -%}
-                  {% set active_page = page|default('index') -%}
+              <nav class="navbar navbar-default ">
+                <div class="container-fluid">
+                  <div class="navbar-header">
 
-                  <ul id="navigation" class="nav navbar-nav">
-                      {% for href, id, caption in navigation_bar %}
-                      <li{% if id == active_page %} class="active"{% endif
-                      %}><a href="{{ href|e }}">{{ caption|e }}</a>
-                      </li>
-                  {% endfor %}
-                </ul>
-              #}
-                  </ul>
-                      <ul class="nav navbar-nav">
-                      <li><a href="{{url_for('.quote')}}" >Quote</a></li>
-                      <li><a href="{{url_for('.sell')}}">Sell</a></li>
-                      <li><a href="{{url_for('.buy')}}">Buy</a></li>
-                      <li><a href="{{url_for('.history')}}">History</a></li>
-                      <li><a href="{{url_for('.logout')}}"><strong>Logout</strong></a></li>
-                   </ul>
-                 <!--
-                   <ul class="nav navbar-nav navbar-right">
-                     {% if session.username is defined %}
-                      <li><a href="#"><span class="glyphicon glyphicon-user"></span> Hi, {{session.username}}</a></li>
-                      <li><a href="{{url_for('.logout')}}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
-                     {% else %}
-                      <li><a href="{{url_for('.register')}}"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
-                      <li><a href="{{url_for('.login')}}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-                      {% endif %}
-                    </ul>
-                  -->
+                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
+                    <a href="#" class="navbar-brand">Menu</a>
                   </div>
+                  <div id='navbar' class="navbar-collapse collapse" style="width: 357px;
+    margin: 0px auto;">
+                      <ul class="nav navbar-nav">
+                        <li><a href="{{url_for('.quote')}}" >Quote</a></li>
+                        <li><a href="{{url_for('.sell')}}">Sell</a></li>
+                        <li><a href="{{url_for('.buy')}}">Buy</a></li>
+                        <li><a href="{{url_for('.history')}}">History</a></li>
+                        <li><a href="{{url_for('.logout')}}"><strong>Logout</strong></a></li>
+                     </ul>
+                   </div>
                 </div>
               </nav>
             </div>
