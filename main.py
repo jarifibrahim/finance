@@ -5,6 +5,8 @@ from werkzeug.security import generate_password_hash, \
 from yahoo_finance import Share
 from forms import RegisterForm, LoginForm
 from mongoengine import *
+import time
+
 app = Flask(__name__);
 
 # secret key is needed for forms(csrf)
@@ -37,11 +39,16 @@ class Users(Document):
         holding = Stockholding()
         holding.symbol = 'FREE'
         holding.shares = 200
-        holding.owner_username = new_user.username
+        holding.username = new_user.username
+        transaction = Transaction(username=new_user.username, date=time.strftime("%d/%m/%Y"), \
+                                    type=Transaction.BUY, symbol='Cash', shares=0)
         try:
             holding.save()
             new_user.save()
+            transaction.save()
         except Exception as e:
+            z = e
+            print z
             return flash('Username already in use. Please choose a different one.', 'text-danger')
         return True
 
@@ -58,7 +65,7 @@ class Users(Document):
     @staticmethod
     def reload_user():
         current_user = Users.objects.get(username=session['username'])
-        holding = Stockholding.objects(owner_username=session['username'])
+        holding = Stockholding.objects(username=session['username'])
         cost = []                       # Cost of each stock
         value = []                      # Value of stock = Cost * number of shares
         global total
@@ -80,14 +87,20 @@ class Users(Document):
 
 class Stockholding(Document):
     symbol = StringField()
-    owner_username = StringField()
+    username = StringField()
     shares = IntField()
 
 class Transaction(Document):
-    owner_username = StringField()
-    date = DateTimeField()
-    type = IntField()
-    price = FloatField()
+    BUY = 1
+    SELL = 2
+    TRANSACTION_CHOICES = (
+        (BUY, 'buy'),
+        (SELL, 'sell'),
+    )
+    username = StringField()
+    date = StringField()
+    type = IntField(choices=TRANSACTION_CHOICES)
+    symbol = StringField()
     shares = IntField()
 
 new_stock = []                  # User data from the db
@@ -136,9 +149,13 @@ def sell():
             if symbol.get_price() is None:
                 return render_template('apology.html', message=['Something went wrong. Please try again.'])
             else:
-                holding = Stockholding.objects.get(owner_username=session['username'], symbol=s)
+                holding = Stockholding.objects.get(username=session['username'], symbol=s)
                 amount_to_add = int(holding.shares) * float(symbol.get_price())
                 Users.objects(username=session['username']).update(inc__cash=amount_to_add)
+
+                transaction = Transaction(username=session['username'], date=time.strftime("%d/%m/%Y"), \
+                                            type=Transaction.SELL, symbol=s, shares=holding.shares)
+                transaction.save()
                 holding.delete()
                 flash('Stock sold successfully', 'text-success')
                 Users.reload_user()
@@ -165,13 +182,16 @@ def buy():
                 if current_user.cash > float(price) * int(sh): # Verify acc balance
 
                     # if user already has shares of 's' inc shares value
-                    if Stockholding.objects(owner_username=session['username'], symbol=s):
-                        Stockholding.objects(symbol=s, owner_username=session['username']).update(inc__shares=int(sh))
+                    if Stockholding.objects(username=session['username'], symbol=s):
+                        Stockholding.objects(symbol=s, username=session['username']).update(inc__shares=int(sh))
                     # Else create a new Stock object
                     else:
-                        holding = Stockholding(symbol=s, owner_username=session['username'], shares=sh)
+                        holding = Stockholding(symbol=s, username=session['username'], shares=sh)
                         holding.save()
 
+                    transaction = Transaction(username=session['username'], date=time.strftime("%d/%m/%Y"), \
+                                                type=Transaction.BUY, symbol=s, shares=sh)
+                    transaction.save()
                     # Dec user cash
                     Users.objects(username=session['username']).update(dec__cash=float(price)*int(sh))
                     flash('Shares bought successfully', 'text-success')
@@ -189,7 +209,16 @@ def buy():
 @app.route('/history')
 def history():
     if 'username' in session:
-        return render_template('construction.html')
+        transactions = Transaction.objects(username=session['username'])
+        t = []
+        for trans in transactions:
+            temp = {}
+            temp['type'] = trans.type
+            temp['symbol'] = trans.symbol
+            temp['shares'] = trans.shares
+            temp['date'] = trans.date
+            t.append(temp)
+        return render_template('history.html', transactions=t)
     return render_template('apology.html', message=['Log In to see this page'])
 
 @app.route("/login", methods=['POST', 'GET'])
@@ -240,10 +269,6 @@ def register():
         else:
             return render_template('register_form.html',form=form)
     return render_template('apology.html', message=['Something went wrong'])
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('apology.html',message=['User not found. Please register before trying to log in.'],title='Page Not Found', no='asd'), 404
 
 if __name__ == '__main__':
     app.run()

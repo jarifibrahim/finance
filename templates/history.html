@@ -1,0 +1,26 @@
+{% extends 'layout.html'%}
+{% block content %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Symbol</th>
+        <th>Shares</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    {% for trans in transactions %}
+    <tr>
+      {% if trans['type'] == 1 %}
+      {%  set type = 'Buy'%}
+      {% else %}
+      {% set type = 'Sell'%}
+      {% endif %}
+      <td>{{type}}</td>
+      <td>{{trans['symbol']}}</td>
+      <td>{{trans['shares']}}</td>
+      <td>{{trans['date']}}</td>
+    </tr>
+    {%endfor%}
+</table>
+  {%endblock%}

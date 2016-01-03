@@ -11,7 +11,7 @@
       </tr>
     </thead>
     {% for s in stocks %}
-    <tr class="{# loop.cycle('success', 'danger') #}">
+    <tr>
       <td>{{s['name']}}</td>
       <td>{{s['shares']}}</td>
       <td>${{s['cost']}}</td>
