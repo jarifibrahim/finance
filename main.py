@@ -1,12 +1,8 @@
 from flask import Flask, render_template, request, redirect, flash, \
      url_for, session, escape
-from werkzeug.security import generate_password_hash, \
-     check_password_hash
 from yahoo_finance import Share
-from forms import RegisterForm, LoginForm
-from mongoengine import *
-import time
-
+from mongoengine import connect
+import models
 app = Flask(__name__);
 
 # secret key is needed for forms(csrf)
@@ -16,96 +12,6 @@ app.config['MONGODB_DB'] = 'finance'
 app.debug = True
 connect(host='mongodb://finance-user:imibrahim@ds037215.mongolab.com:37215/finance-database')
 
-# Classname = collectionName
-# Same schema as the collection
-class Users(Document):
-    username = StringField(min_length=4, unique=True)
-    password = StringField(max_length=255)
-    cash = FloatField(default=20000.00)
-    def set_password(self, password):
-        self.password = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
-
-
-    # Try to create new user. Returns True if new user is created successfully else
-    # returns False
-    @staticmethod
-    def create_user(form):
-        new_user = Users()
-        new_user.username = form.username.data
-        new_user.set_password(form.password.data)
-        holding = Stockholding()
-        holding.symbol = 'FREE'
-        holding.shares = 200
-        holding.username = new_user.username
-        transaction = Transaction(username=new_user.username, date=time.strftime("%d/%m/%Y"), \
-                                    type=Transaction.BUY, symbol='Cash', shares=0)
-        try:
-            holding.save()
-            new_user.save()
-            transaction.save()
-        except Exception as e:
-            z = e
-            print z
-            return flash('Username already in use. Please choose a different one.', 'text-danger')
-        return True
-
-    # Verify login credentials
-    @staticmethod
-    def check_login(form):
-        try:
-            current_user = Users.objects.get(username=form.username.data)
-            return current_user.check_password(form.password.data)
-        except Exception as e:
-            print e
-            return False
-
-    @staticmethod
-    def reload_user():
-        current_user = Users.objects.get(username=session['username'])
-        holding = Stockholding.objects(username=session['username'])
-        cost = []                       # Cost of each stock
-        value = []                      # Value of stock = Cost * number of shares
-        global total
-        global new_stock
-        new_stock = []
-        total = 0.0
-        for item in holding:
-            temp = {}
-            yahoo = Share(item.symbol)
-            temp['name'] = item.symbol
-            temp['shares'] = int(item.shares)
-            temp['cost'] = float(yahoo.get_price())
-            temp['value'] = temp['cost'] * int(item.shares)
-            total = total + temp['value']
-            new_stock.append(temp)
-        global cash
-        cash = current_user.cash
-        total = total + cash
-
-class Stockholding(Document):
-    symbol = StringField()
-    username = StringField()
-    shares = IntField()
-
-class Transaction(Document):
-    BUY = 1
-    SELL = 2
-    TRANSACTION_CHOICES = (
-        (BUY, 'buy'),
-        (SELL, 'sell'),
-    )
-    username = StringField()
-    date = StringField()
-    type = IntField(choices=TRANSACTION_CHOICES)
-    symbol = StringField()
-    shares = IntField()
-
-new_stock = []                  # User data from the db
-total = 0.0                     # Total value of all shares
-cash = 0.0
 
 @app.route("/")
 def index():
@@ -117,9 +23,11 @@ def index():
 def portfolio():
     #If user is logged in
     if 'username' in session:
-        if not new_stock:
-            Users.reload_user()
-        return render_template('portfolio.html', title='Portfolio', stocks=new_stock, total=total, cash=cash)
+        # If no stock data is found recreate it
+        if not models.new_stock:
+            models.Users.reload_user()
+
+        return render_template('portfolio.html', title='Portfolio', stocks=models.new_stock, total=models.total, cash=models.cash)
     else:
         return render_template('apology.html', title='Error', message=['Log In to see this page'])
 
@@ -133,7 +41,7 @@ def quote():
         # for invalid stock
         if quote is None:
             return render_template('quote.html', stock=s)
-        # for a valid stock
+        # for a valid symbol
         return render_template('quote.html', stock=s, quote=quote)
     # if no form data is submitted
     return render_template('quote.html', title='Quote')
@@ -141,26 +49,31 @@ def quote():
 @app.route("/sell")
 def sell():
     if 'username' in session:
+        # Get symbol name
         s = request.args.get('symbol')
-        if not new_stock:
-            Users.reload_user()
+        # recreate users stock information
+        if not models.new_stock:
+            models.Users.reload_user()
+        # symbol name is valid
         if s is not None and s != '':
             symbol = Share(s)
             if symbol.get_price() is None:
                 return render_template('apology.html', message=['Something went wrong. Please try again.'])
             else:
-                holding = Stockholding.objects.get(username=session['username'], symbol=s)
+                # Get user's stock info
+                holding = models.Stockholding.objects.get(username=session['username'], symbol=s)
                 amount_to_add = int(holding.shares) * float(symbol.get_price())
-                Users.objects(username=session['username']).update(inc__cash=amount_to_add)
-
-                transaction = Transaction(username=session['username'], date=time.strftime("%d/%m/%Y"), \
-                                            type=Transaction.SELL, symbol=s, shares=holding.shares)
+                # add value of shares to user's cash
+                models.Users.objects(username=session['username']).update(inc__cash=amount_to_add)
+                # log transaction
+                transaction = models.Transaction(username=session['username'], date=time.strftime("%d/%m/%Y"), \
+                                            type=models.Transaction.SELL, symbol=s, shares=holding.shares)
                 transaction.save()
-                holding.delete()
+                holding.delete() # Remove stock
                 flash('Stock sold successfully', 'text-success')
-                Users.reload_user()
+                models.Users.reload_user()
                 return redirect('portfolio')
-        return render_template('sell.html', stocks=new_stock)
+        return render_template('sell.html', stocks=models.new_stock)
     return render_template('apology.html', message=['Log In to see this page'])
 
 @app.route('/buy')
@@ -178,22 +91,22 @@ def buy():
             temp = Share(s)
             price = temp.get_price()
             if price is not None: # Valid symbol exists
-                current_user = Users.objects.get(username=session['username'])
+                current_user = models.Users.objects.get(username=session['username'])
                 if current_user.cash > float(price) * int(sh): # Verify acc balance
 
-                    # if user already has shares of 's' inc shares value
-                    if Stockholding.objects(username=session['username'], symbol=s):
-                        Stockholding.objects(symbol=s, username=session['username']).update(inc__shares=int(sh))
+                    # if user already has shares of 's', increment shares count
+                    if models.Stockholding.objects(username=session['username'], symbol=s):
+                        models.Stockholding.objects(symbol=s, username=session['username']).update(inc__shares=int(sh))
                     # Else create a new Stock object
                     else:
-                        holding = Stockholding(symbol=s, username=session['username'], shares=sh)
+                        holding = models.Stockholding(symbol=s, username=session['username'], shares=sh)
                         holding.save()
 
-                    transaction = Transaction(username=session['username'], date=time.strftime("%d/%m/%Y"), \
-                                                type=Transaction.BUY, symbol=s, shares=sh)
+                    transaction = models.Transaction(username=session['username'], date=time.strftime("%d/%m/%Y"), \
+                                                type=models.Transaction.BUY, symbol=s, shares=sh)
                     transaction.save()
-                    # Dec user cash
-                    Users.objects(username=session['username']).update(dec__cash=float(price)*int(sh))
+                    # Decrement user cash
+                    models.Users.objects(username=session['username']).update(dec__cash=float(price)*int(sh))
                     flash('Shares bought successfully', 'text-success')
                 else:
                     flash("You don't have enough balance", 'text-danger')
@@ -201,7 +114,7 @@ def buy():
             else:
                 flash('Symbol not found', 'text-danger')
                 return redirect('buy')
-            Users.reload_user()
+            models.Users.reload_user()
             return redirect('portfolio')
         return render_template('buy.html', title='Buy')
     return render_template('apology.html', message=['Log In to see this page'])
@@ -209,7 +122,8 @@ def buy():
 @app.route('/history')
 def history():
     if 'username' in session:
-        transactions = Transaction.objects(username=session['username'])
+        transactions = models.Transaction.objects(username=session['username'])
+        # Generate transactions table
         t = []
         for trans in transactions:
             temp = {}
@@ -232,11 +146,11 @@ def login():
         # Validate form data
         if form.validate():
             # Check username and password
-            if Users.check_login(form):
+            if models.Users.check_login(form):
                 flash('You were successfully logged in', 'text-success')
                 # Log user session
                 session['username'] = form.username.data
-                Users.reload_user()
+                models.Users.reload_user()
                 return redirect(url_for('index'))
             else:
                 flash('Incorrect login credentials', 'text-danger')
@@ -248,8 +162,7 @@ def login():
 def logout():
     # Clear user session
     session.clear()
-    global new_stock
-    new_stock[:]
+    models.new_stock[:]
     flash('You were successfully logged out', 'text-success')
     return redirect(url_for('index'))
 
@@ -261,7 +174,7 @@ def register():
     elif request.method == 'POST':
         form = RegisterForm(request.form)
         if form.validate():
-            if Users.create_user(form):
+            if models.Users.create_user(form):
                 flash('You were successfully registered', 'text-success')
                 return redirect(url_for('index'))
             else:
