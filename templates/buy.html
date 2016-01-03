@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 {% block content %}
-<form class='form-horizontal' action="{{url_for('.buy')}}">
+<form class='form-horizontal' action="{{url_for('.buy')}}" method="GET">
   <div class="form-group">
     <input type="text" placeholder="Symbol" name='symbol' class="form-control"/>
   </div>
