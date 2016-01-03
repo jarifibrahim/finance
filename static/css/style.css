@@ -36,3 +36,20 @@
 table {
   text-align: left;
 }
+
+form  {
+  margin-top: 50px;
+}
+
+span.help-block {
+  margin-bottom: 0px;
+}
+
+.lead {
+  margin-top: 20px;
+}
+
+#middle {
+  width: 75%;
+  margin: 0px auto;
+}

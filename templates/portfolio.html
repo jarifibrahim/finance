@@ -4,9 +4,9 @@
   <table class="table">
     <thead>
       <tr>
-        <th>Stock</th>
+        <th>Symbol</th>
         <th>Shares</th>
-        <th>Cost</th>
+        <th>Price</th>
         <th>Value</th>
       </tr>
     </thead>
@@ -14,10 +14,14 @@
     <tr class="{# loop.cycle('success', 'danger') #}">
       <td>{{s['name']}}</td>
       <td>{{s['shares']}}</td>
-      <td>{{s['cost']}}</td>
+      <td>${{s['cost']}}</td>
       <td>${{s['value']}}</td>
     </tr>
   {% endfor %}
+  <tr>
+    <td colspan="3" style="text-align: left">Cash</td>
+    <td>{{cash}}</td>
+  </tr>
   <tr>
     <td colspan="3" style="text-align: left"><strong>Current Balance</strong></td>
     <td>${{total}}</td>

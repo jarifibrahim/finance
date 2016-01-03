@@ -79,13 +79,11 @@
             </div>
             {%endif%}
             <div id="middle">
-              {% with messages = get_flashed_messages() %}
+              {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                  <ul class='list-group'>
-                  {% for message in messages %}
-                    <li class="list-group-item list-group-item-success">{{ message }}</li>
+                  {% for category, message in messages %}
+                    <h3><span class= {{ category }}>{{ message }}</span></h3>
                   {% endfor %}
-                  </ul>
                 {% endif %}
               {% endwith %}
             {% block content %}

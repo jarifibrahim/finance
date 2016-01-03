@@ -2,10 +2,10 @@
 {% block content %}
 <form class='form-horizontal' action="{{url_for('.buy')}}">
   <div class="form-group">
-    <input type="text" placeholder="Symbol" class="form-control"/>
+    <input type="text" placeholder="Symbol" name='symbol' class="form-control"/>
   </div>
   <div class="form-group">
-    <input type="text" placeholder="Shares" class="form-control"/>
+    <input type="text" placeholder="Shares" name='shares' class="form-control"/>
   </div>
   <div class="form-group">
     <input type="submit" class="form-control btn btn-default" value="BUY"/>
