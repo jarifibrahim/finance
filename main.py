@@ -19,7 +19,7 @@ connect(host='mongodb://finance-user:imibrahim@ds037215.mongolab.com:37215/finan
 class Users(Document):
     username = StringField(min_length=4, unique=True)
     password = StringField(max_length=255)
-    cash = IntField(default=20000)
+    cash = FloatField(default=20000.00)
     def set_password(self, password):
         self.password = generate_password_hash(password)
 
@@ -65,9 +65,6 @@ class Users(Document):
         global new_stock
         new_stock = []
         total = 0.0
-        print new_stock
-        for s in new_stock:
-            print s
         for item in holding:
             temp = {}
             yahoo = Share(item.symbol)
@@ -95,7 +92,7 @@ class Transaction(Document):
 
 new_stock = []                  # User data from the db
 total = 0.0                     # Total value of all shares
-cash = 0
+cash = 0.0
 
 @app.route("/")
 def index():
@@ -107,10 +104,8 @@ def index():
 def portfolio():
     #If user is logged in
     if 'username' in session:
-        #Get current user object from db
-        Users.reload_user()
-        for n in new_stock:
-            print n
+        if not new_stock:
+            Users.reload_user()
         return render_template('portfolio.html', title='Portfolio', stocks=new_stock, total=total, cash=cash)
     else:
         return render_template('apology.html', title='Error', message=['Log In to see this page'])
@@ -134,17 +129,28 @@ def quote():
 def sell():
     if 'username' in session:
         s = request.args.get('symbol')
+        if not new_stock:
+            Users.reload_user()
         if s is not None and s != '':
-            holding = Stockholding.objects.get(owner_username=session['username'], symbol=s)
-            holding.delete()
-            flash('Stock sold successfully', 'text-success')
-            return redirect('portfolio')
+            symbol = Share(s)
+            if symbol.get_price() is None:
+                return render_template('apology.html', message=['Something went wrong. Please try again.'])
+            else:
+                holding = Stockholding.objects.get(owner_username=session['username'], symbol=s)
+                amount_to_add = int(holding.shares) * float(symbol.get_price())
+                Users.objects(username=session['username']).update(inc__cash=amount_to_add)
+                holding.delete()
+                flash('Stock sold successfully', 'text-success')
+                Users.reload_user()
+                return redirect('portfolio')
         return render_template('sell.html', stocks=new_stock)
     return render_template('apology.html', message=['Log In to see this page'])
 
 @app.route('/buy')
 def buy():
     if 'username' in session:
+        if not request.query_string:        # If query string is empty return original template
+            return render_template('buy.html')
         s = request.args.get('symbol')
         sh = request.args.get('shares')
         if s is None or s == '':
@@ -154,19 +160,28 @@ def buy():
         else:
             temp = Share(s)
             price = temp.get_price()
-            if price is not None:
-                holding = Stockholding(symbol=s, owner_username=session['username'], shares=sh)
-                holding.save()
+            if price is not None: # Valid symbol exists
+                current_user = Users.objects.get(username=session['username'])
+                if current_user.cash > float(price) * int(sh): # Verify acc balance
+
+                    # if user already has shares of 's' inc shares value
+                    if Stockholding.objects(owner_username=session['username'], symbol=s):
+                        Stockholding.objects(symbol=s, owner_username=session['username']).update(inc__shares=int(sh))
+                    # Else create a new Stock object
+                    else:
+                        holding = Stockholding(symbol=s, owner_username=session['username'], shares=sh)
+                        holding.save()
+
+                    # Dec user cash
+                    Users.objects(username=session['username']).update(dec__cash=float(price)*int(sh))
+                    flash('Shares bought successfully', 'text-success')
+                else:
+                    flash("You don't have enough balance", 'text-danger')
+                    return redirect('buy')
             else:
                 flash('Symbol not found', 'text-danger')
                 return redirect('buy')
-
-            current_user = Users.objects.get(username=session['username'])
-            print price
-            print int(sh)
-            if current_user.cash < price * int(sh):
-                Users.objects(username=session['username']).update(dec__cash=price*int(sh))m
-                flash('Shares bought successfully', 'text-success')
+            Users.reload_user()
             return redirect('portfolio')
         return render_template('buy.html', title='Buy')
     return render_template('apology.html', message=['Log In to see this page'])
@@ -192,6 +207,7 @@ def login():
                 flash('You were successfully logged in', 'text-success')
                 # Log user session
                 session['username'] = form.username.data
+                Users.reload_user()
                 return redirect(url_for('index'))
             else:
                 flash('Incorrect login credentials', 'text-danger')
