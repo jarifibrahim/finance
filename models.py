@@ -76,7 +76,6 @@ class Users(Document):
         global cash
         cash = current_user.cash
         total = total + cash
-        print new_stock
 
 class Stockholding(Document):
     symbol = StringField()

@@ -10,7 +10,7 @@ app = Flask(__name__);
 app.config['SECRET_KEY'] = 's3cr3t'
 # Database to use for mongoDB
 app.config['MONGODB_DB'] = 'finance'
-app.debug = True
+app.debug = False
 connect(host='mongodb://finance-user:imibrahim@ds037215.mongolab.com:37215/finance-database')
 
 
