@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, flash, \
 from yahoo_finance import Share
 from mongoengine import connect
 import models
-import forms
+from forms import LoginForm, RegisterForm
 app = Flask(__name__);
 
 # secret key is needed for forms(csrf)
