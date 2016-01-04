@@ -3,7 +3,7 @@ from flask import session
 from yahoo_finance import Share
 from werkzeug.security import generate_password_hash, \
      check_password_hash
-
+import time
 
 new_stock = []                  # User data from the db
 total = 0.0                     # Total value of all shares
