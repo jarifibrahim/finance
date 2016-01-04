@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, flash, \
      url_for, session, escape
 from yahoo_finance import Share
 from mongoengine import connect
-import models
+import models, time
 from forms import LoginForm, RegisterForm
 app = Flask(__name__);
 
