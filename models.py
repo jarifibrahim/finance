@@ -6,7 +6,6 @@ from werkzeug.security import generate_password_hash, \
 import time
 
 new_stock = []                  # User data from the db
-total = 0.0                     # Total value of all shares
 cash = 0.0
 
 # Classname = collectionName
