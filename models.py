@@ -1,5 +1,5 @@
 from mongoengine import *
-from flask import session
+from flask import session, flash
 from yahoo_finance import Share
 from werkzeug.security import generate_password_hash, \
      check_password_hash
@@ -35,13 +35,14 @@ class Users(Document):
         transaction = Transaction(username=new_user.username, date=time.strftime("%d/%m/%Y"), \
                                     type=Transaction.BUY, symbol='Cash', shares=0)
         try:
-            holding.save()
             new_user.save()
+            holding.save()
             transaction.save()
         except Exception as e:
             z = e
             print z
-            return flash('Username already in use. Please choose a different one.', 'text-danger')
+            flash('Username already in use. Please choose a different one.', 'text-danger')
+            return False
         return True
 
     # Verify login credentials
