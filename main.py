@@ -27,7 +27,6 @@ def portfolio():
         # If no stock data is found recreate it
         if not models.new_stock:
             models.Users.reload_user()
-
         return render_template('portfolio.html', title='Portfolio', stocks=models.new_stock, total=models.total, cash=models.cash)
     else:
         return render_template('apology.html', title='Error', message=['Log In to see this page'])
@@ -93,6 +92,9 @@ def buy():
             price = temp.get_price()
             if price is not None: # Valid symbol exists
                 current_user = models.Users.objects.get(username=session['username'])
+                if not isinstance(sh, int):
+                    flash("Enter valid share count", 'text-danger')
+                    return render_template('buy.html')
                 if current_user.cash > float(price) * int(sh): # Verify acc balance
 
                     # if user already has shares of 's', increment shares count
