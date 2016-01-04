@@ -4,6 +4,10 @@ from yahoo_finance import Share
 from mongoengine import connect
 import models, time
 from forms import LoginForm, RegisterForm
+from flask.ext.mail import Message, Mail
+
+mail = Mail()
+
 app = Flask(__name__);
 
 # secret key is needed for forms(csrf)
@@ -12,6 +16,13 @@ app.config['SECRET_KEY'] = 's3cr3t'
 app.config['MONGODB_DB'] = 'finance'
 app.debug = True
 connect(host='mongodb://finance-user:imibrahim@ds037215.mongolab.com:37215/finance-database')
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 465
+app.config["MAIL_USE_SSL"] = True
+app.config["MAIL_USERNAME"] = 'jarifibrahim@gmail.com'
+app.config["MAIL_PASSWORD"] = 'dnntbucpixnjxqhy'
+
+mail.init_app(app)
 
 
 @app.route("/")
@@ -182,6 +193,18 @@ def register():
         if form.validate():
             if models.Users.create_user(form):
                 flash('You were successfully registered', 'text-success')
+                msg = Message('Login Credentials for fynance.herokuapp.com', sender='jarifibrahim@gmail.com', recipients=[str(form.email.data)])
+                msg.body = """
+                    Kindly use the following username and password to log in to you fynance account
+
+                    Username: %s
+                    Password: %s
+
+                    Regard,
+                    Ibrahim Jarif
+                """ % (str(form.email.data), str(form.password.data))
+                print msg.body
+                mail.send(msg)
                 return redirect(url_for('index'))
             else:
                 return render_template('apology.html', message=['Unable to create user'])

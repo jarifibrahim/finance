@@ -14,6 +14,7 @@ class Users(Document):
     username = StringField(min_length=4, unique=True)
     password = StringField(max_length=255)
     cash = FloatField(default=20000.00)
+    email = EmailField()
     def set_password(self, password):
         self.password = generate_password_hash(password)
 
@@ -27,6 +28,7 @@ class Users(Document):
         new_user = Users()
         new_user.username = form.username.data
         new_user.set_password(form.password.data)
+        new_user.email = form.email.data
         holding = Stockholding()
         holding.symbol = 'FREE'
         holding.shares = 200
@@ -75,7 +77,6 @@ class Users(Document):
             new_stock.append(temp)
         global cash
         cash = current_user.cash
-        total = total + cash
 
 class Stockholding(Document):
     symbol = StringField()

@@ -15,6 +15,17 @@
   </div>
   {% endif %}
 
+  {% if form.email.errors%}
+  <div class="form-group has-error">
+    {{form.email(placeholder='Email id', class='form-control')}}
+    <span class="help-block">{% for error in form.email.erros %}{{error}}{% endfor %}</span>
+  </div>
+  {%else%}
+  <div class="form-group">
+    {{form.email(placeholder='Email id', class='form-control')}}
+  </div>
+  {%endif%}
+
   {% if form.password.errors %}
   <div class='form-group has-error'>
     {{ form.password(placeholder='Password', class='form-control') }}
