@@ -6,14 +6,14 @@ class LoginForm(Form):
     username = StringField('Username', [validators.InputRequired(message=(u'Invalid Username')),
                                         validators.Length(min=4, max=25,
                                                 message=(u'Username should have at least 4 characters'))])
-    email = StringField('Email', [validators.InputRequired(message=(u'Email Required')),
-                                 validators.Email(message=(u'Invalid Email id'))])
     password = PasswordField('Password', [validators.InputRequired(message=(u'Password Required')),
                                           validators.Length(min=4, max=25,
                                                 message=(u'Password should have at least 4 characters'))])
     submit = SubmitField("Log In")
 
 class RegisterForm(LoginForm):
+    email = StringField('Email', [validators.InputRequired(message=(u'Email Required')),
+                                     validators.Email(message=(u'Invalid Email id'))])
     confirm = PasswordField('Repeat Password', [
                         validators.EqualTo('password', message=(u'Passwords must match! ')),
                         validators.InputRequired(message=(u'Password Required ')),
