@@ -25,6 +25,8 @@ class Users(Document):
     # returns False
     @staticmethod
     def create_user(form):
+        Users.reload()
+        transaction.reload()
         new_user = Users()
         new_user.username = form.username.data
         new_user.set_password(form.password.data)
