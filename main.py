@@ -207,7 +207,7 @@ def register():
                 mail.send(msg)
                 return redirect(url_for('index'))
             else:
-                return render_template('apology.html', message=['Unable to create user'])
+                return render_template('register_form.html', form=form)
         else:
             return render_template('register_form.html',form=form)
     return render_template('apology.html', message=['Something went wrong'])

@@ -14,7 +14,7 @@ class Users(Document):
     username = StringField(min_length=4, unique=True)
     password = StringField(max_length=255)
     cash = FloatField(default=20000.00)
-    email = EmailField()
+    email = EmailField(unique=True)
     def set_password(self, password):
         self.password = generate_password_hash(password)
 
@@ -28,11 +28,11 @@ class Users(Document):
         new_user = Users()
         new_user.username = form.username.data
         new_user.set_password(form.password.data)
-        new_user.email = form.email.data
+        new_user.email = form.email.data.lower()
         holding = Stockholding()
         holding.symbol = 'FREE'
         holding.shares = 200
-        holding.username = new_user.username
+        holding.username = new_user.username.lower()
         transaction = Transaction(username=new_user.username, date=time.strftime("%d/%m/%Y"), \
                                     type=Transaction.BUY, symbol='Cash', shares=0)
         try:
@@ -40,9 +40,13 @@ class Users(Document):
             holding.save()
             transaction.save()
         except Exception as e:
-            z = e
-            print z
-            flash('Username already in use. Please choose a different one.', 'text-danger')
+
+            if(e.message.find('username') > -1):
+                flash('Username already in use. Please choose a different one.', 'text-danger')
+            elif(e.message.find('email') > -1):
+                flash('Email ID already in use. Please choose a different one.', 'text-danger')
+            else:
+                flash('Something went wrong.', 'text-danger')
             return False
         return True
 
