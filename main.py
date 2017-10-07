@@ -37,10 +37,9 @@ def index():
 def portfolio():
     #If user is logged in
     if 'username' in session:
-        # If no stock data is found recreate it
-        if not models.new_stock:
-            models.Users.reload_user()
-        return render_template('portfolio.html', title='Portfolio', stocks=models.new_stock, cash=models.cash)
+        current_user = models.Users.objects.get(username=session['username'])
+        result = current_user.get_status()
+        return render_template('portfolio.html', title='Portfolio', stocks=result['all_items'], cash=result['cash'], total=result['total'])
     else:
         return render_template('apology.html', title='Error', message=['Log In to see this page'])
 
@@ -64,9 +63,7 @@ def sell():
     if 'username' in session:
         # Get symbol name
         s = request.args.get('symbol')
-        # recreate users stock information
-        if not models.new_stock:
-            models.Users.reload_user()
+        current_user = models.Users.objects.get(username=session['username'])
         # symbol name is valid
         if s is not None and s != '':
             symbol = Share(s)
@@ -74,20 +71,19 @@ def sell():
                 return render_template('apology.html', message=['Something went wrong. Please try again.'])
             else:
                 # Get user's stock info
-                holding = models.Stockholding.objects.get(username=session['username'], symbol=s)
+                holding = models.Stockholding.objects.get(username=current_user.username, symbol=s)
                 amount_to_add = int(holding.shares) * float(symbol.get_price())
                 # add value of shares to user's cash
-                models.Users.objects(username=session['username']).update(inc__cash=amount_to_add)
+                current_user.update(inc__cash=amount_to_add)
                 # log transaction
-                transaction = models.Transaction(username=session['username'], date=time.strftime("%d/%m/%Y"), \
+                transaction = models.Transaction(username=current_user.username, date=time.strftime("%d/%m/%Y"), \
                                             type=models.Transaction.SELL, symbol=s, shares=holding.shares)
                 transaction.save()
                 holding.delete() # Remove stock
                 flash('Stock sold successfully', 'text-success')
-                models.Users.reload_user()
-                print models.new_stock
-                return redirect('portfolio')
-        return render_template('sell.html', stocks=models.new_stock)
+                result = current_user.get_status()
+                return redirect('portfolio', stocks=result['all_items'], cash=result['cash'], total=result['total']) 
+        return render_template('sell.html', stocks=result['all_items'])
     return render_template('apology.html', message=['Log In to see this page'])
 
 @app.route('/buy')
@@ -114,18 +110,18 @@ def buy():
                 if current_user.cash > float(price) * int(sh): # Verify acc balance
 
                     # if user already has shares of 's', increment shares count
-                    if models.Stockholding.objects(username=session['username'], symbol=s):
-                        models.Stockholding.objects(symbol=s, username=session['username']).update(inc__shares=int(sh))
+                    if models.Stockholding.objects(username=current_user.username, symbol=s):
+                        models.Stockholding.objects(symbol=s, username=current_user.username).update(inc__shares=int(sh))
                     # Else create a new Stock object
                     else:
-                        holding = models.Stockholding(symbol=s, username=session['username'], shares=sh)
+                        holding = models.Stockholding(symbol=s, username=current_user.username, shares=sh)
                         holding.save()
 
-                    transaction = models.Transaction(username=session['username'], date=time.strftime("%d/%m/%Y"), \
+                    transaction = models.Transaction(username=current_user.username, date=time.strftime("%d/%m/%Y"), \
                                                 type=models.Transaction.BUY, symbol=s, shares=sh)
                     transaction.save()
                     # Decrement user cash
-                    models.Users.objects(username=session['username']).update(dec__cash=float(price)*int(sh))
+                    current_user.update(dec__cash=float(price)*int(sh))
                     flash('Shares bought successfully', 'text-success')
                 else:
                     flash("You don't have enough balance", 'text-danger')
@@ -133,8 +129,8 @@ def buy():
             else:
                 flash('Symbol not found', 'text-danger')
                 return redirect('buy')
-            models.Users.reload_user()
-            return redirect('portfolio')
+            result = current_user.get_status()
+            return redirect('portfolio', stocks=result['all_items'], total=result['total'], cash=result['cash'])
         return render_template('buy.html', title='Buy')
     return render_template('apology.html', message=['Log In to see this page'])
 
@@ -169,7 +165,6 @@ def login():
                 flash('You were successfully logged in', 'text-success')
                 # Log user session
                 session['username'] = form.username.data
-                models.Users.reload_user()
                 return redirect(url_for('index'))
             else:
                 flash('Incorrect login credentials', 'text-danger')
@@ -181,7 +176,6 @@ def login():
 def logout():
     # Clear user session
     session.clear()
-    models.new_stock[:]
     flash('You were successfully logged out', 'text-success')
     return redirect(url_for('index'))
 

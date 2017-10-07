@@ -5,9 +5,6 @@ from werkzeug.security import generate_password_hash, \
      check_password_hash
 import time
 
-new_stock = []                  # User data from the db
-cash = 0.0
-
 # Classname = collectionName
 # Same schema as the collection
 class Users(Document):
@@ -62,27 +59,47 @@ class Users(Document):
             print e
             return False
 
-    @staticmethod
-    def reload_user():
-        current_user = Users.objects.get(username=session['username'])
-        holding = Stockholding.objects(username=session['username'])
-        cost = []                       # Cost of each stock
-        value = []                      # Value of stock = Cost * number of shares
-        global total
-        global new_stock
-        new_stock = []
+    def get_status(self):
+        result = {}
+        holding = Stockholding.objects(username=self.username)
+        all_items = []
         total = 0.0
         for item in holding:
-            temp = {}
             yahoo = Share(item.symbol)
-            temp['name'] = item.symbol
-            temp['shares'] = int(item.shares)
-            temp['cost'] = float(yahoo.get_price())
-            temp['value'] = temp['cost'] * int(item.shares)
-            total = total + temp['value']
-            new_stock.append(temp)
-        global cash
-        cash = current_user.cash
+            all_items.append({
+                'name': item.symbol,
+                'shares': int(item.shares),
+                'cost': float(yahoo.get_price()),
+                'value': float(yahoo.get_price()) * int(item.shares),
+            })
+            total += all_items[-1]['value']
+        return {
+            'all_items': all_items,
+            'cash': self.cash,
+            'total': total + self.cash,
+        }
+
+    # @staticmethod
+    # def reload_user():
+    #     current_user = Users.objects.get(username=session['username'])
+    #     holding = Stockholding.objects(username=session['username'])
+    #     cost = []                       # Cost of each stock
+    #     value = []                      # Value of stock = Cost * number of shares
+    #     global total
+    #     global new_stock
+    #     new_stock = []
+    #     total = 0.0
+    #     for item in holding:
+    #         temp = {}
+    #         yahoo = Share(item.symbol)
+    #         temp['name'] = item.symbol
+    #         temp['shares'] = int(item.shares)
+    #         temp['cost'] = float(yahoo.get_price())
+    #         temp['value'] = temp['cost'] * int(item.shares)
+    #         total = total + temp['value']
+    #         new_stock.append(temp)
+    #     global cash
+    #     cash = current_user.cash
 
 class Stockholding(Document):
     symbol = StringField()
