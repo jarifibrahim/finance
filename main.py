@@ -211,7 +211,7 @@ Ibrahim
 ----
 Please note: This is a system generated email.
 ----
-                """ % (str(form.email.data), str(form.email.data), str(form.password.data))
+                """ % (str(form.username.data), str(form.username.data), str(form.password.data))
                 print msg.body
                 mail.send(msg)
                 return redirect(url_for('index'))
