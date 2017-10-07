@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, render_template, request, redirect, flash, \
      url_for, session, escape
 from yahoo_finance import Share
@@ -8,19 +10,19 @@ from flask.ext.mail import Message, Mail
 
 mail = Mail()
 
-app = Flask(__name__);
+app = Flask(__name__)
 
 # secret key is needed for forms(csrf)
-app.config['SECRET_KEY'] = 's3cr3t'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 # Database to use for mongoDB
-app.config['MONGODB_DB'] = 'finance'
+app.config['MONGODB_DB'] = os.getenv('MONGODB')
 app.debug = True
-connect(host='mongodb://finance-user:imibrahim@ds037215.mongolab.com:37215/finance-database')
-app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 465
+connect(host=os.getenv('CONNECTION_URL'))
+app.config["MAIL_SERVER"] = os.getenv('MAIL_SERVER')
+app.config["MAIL_PORT"] = os.getenv('MAIL_PORT')
 app.config["MAIL_USE_SSL"] = True
-app.config["MAIL_USERNAME"] = 'jarifibrahim@gmail.com'
-app.config["MAIL_PASSWORD"] = 'dnntbucpixnjxqhy'
+app.config["MAIL_USERNAME"] = os.getenv('MAIL_USERNAME')
+app.config["MAIL_PASSWORD"] = os.getenv('MAIL_PASSWORD')
 
 mail.init_app(app)
 
