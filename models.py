@@ -29,12 +29,12 @@ class Users(Document):
         new_user.username = form.username.data
         new_user.set_password(form.password.data)
         new_user.email = form.email.data.lower()
-        '''
+
         holding = Stockholding()
         holding.symbol = 'FREE'
         holding.shares = 200
         holding.username = new_user.username.lower()
-        '''
+
         transaction = Transaction(username=new_user.username, date=time.strftime("%d/%m/%Y"), \
                                     type=Transaction.BUY, symbol='Cash', shares=0)
         try:
