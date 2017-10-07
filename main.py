@@ -197,14 +197,21 @@ def register():
                 flash('You were successfully registered', 'text-success')
                 msg = Message('Login Credentials for fynance.herokuapp.com', sender='jarifibrahim@gmail.com', recipients=[str(form.email.data)])
                 msg.body = """
-                    Kindly use the following username and password to log in to you fynance account
+Hey %s,
+Thanks for registering to fynance.herokuapp.com
 
-                    Username: %s
-                    Password: %s
+Kindly use the following username and password to log in to you fynance account
 
-                    Regard,
-                    Ibrahim Jarif
-                """ % (str(form.email.data), str(form.password.data))
+Username: %s
+Password: %s
+
+Cheers,
+Ibrahim
+
+----
+Please note: This is a system generated email.
+----
+                """ % (str(form.email.data), str(form.email.data), str(form.password.data))
                 print msg.body
                 mail.send(msg)
                 return redirect(url_for('index'))
